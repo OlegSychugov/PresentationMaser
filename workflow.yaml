@@ -1,0 +1,41 @@
+name: presentation_creation_loop
+
+steps:
+  - name: analyze_root_cause
+    command: goldratt_analyzer
+    input:
+      - user_prompt.md
+    output:
+      - goldratt_output.json
+
+  - name: map_spin_stages
+    command: spin_stage_mapper
+    input:
+      - goldratt_output.json
+    output:
+      - spin_analysis.json
+      - selected_slides.json
+
+  - name: build_slide_story
+    command: storyteller_builder
+    input:
+      - spin_analysis.json
+      - selected_slides.json
+    output:
+      - draft_presentation.md
+
+  - name: calculate_roi
+    command: roi_engineer
+    input:
+      - spin_analysis.json
+      - draft_presentation.md
+    output:
+      - roi_analysis.json
+
+  - name: finalize_deck
+    command: deck_finalizer
+    input:
+      - draft_presentation.md
+      - roi_analysis.json
+    output:
+      - final_deck.md 
