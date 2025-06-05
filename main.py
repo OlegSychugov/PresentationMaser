@@ -1,7 +1,8 @@
 import os
 import json
 from crewai import Agent, Task, Crew
-from langchain_community.chat_models import ChatOpenAI
+from langchain_community.llms import HuggingFacePipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 # === Настройки клиента ===
 CLIENT_ID = "arenadata"
@@ -15,8 +16,21 @@ with open(os.path.join(BASE_DIR, "goldratt.txt"), "r", encoding="utf-8") as f:
 with open(os.path.join(BASE_DIR, "spin.txt"), "r", encoding="utf-8") as f:
     spin_text = f.read()
 
-# === Подключение к OpenAI GPT-3.5 ===
-llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.2)
+# === Подключение локальной модели Mistral ===
+MISTRAL_PATH = os.environ.get("MISTRAL_PATH", "./mistral-model")
+
+tokenizer = AutoTokenizer.from_pretrained(MISTRAL_PATH)
+model = AutoModelForCausalLM.from_pretrained(MISTRAL_PATH)
+
+generation_pipe = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    temperature=0.2,
+    do_sample=True,
+)
+
+llm = HuggingFacePipeline(pipeline=generation_pipe)
 
 # === Агенты ===
 goldratt_agent = Agent(
@@ -72,5 +86,5 @@ crew = Crew(
 )
 
 result = crew.kickoff()
-print(\"=== Результат презентации ===\")
+print("=== Результат презентации ===")
 print(result)
